@@ -1,11 +1,16 @@
+use crate::AppState;
 use axum::{
-    routing::{get, post},
+    routing::{get, patch, post},
     Router,
 };
-use controllers::users_controller;
+use handlers::users_handler;
 
-use crate::controllers;
+use crate::handlers;
 
-pub fn web() -> Router {
-    return Router::new().route("/users/create", post(users_controller::create_user));
+pub fn web() -> Router<AppState> {
+    Router::new()
+        .route("/users", get(users_handler::all))
+        .route("/users/:id", get(users_handler::get))
+        .route("/users/create", post(users_handler::create))
+        .route("/users/:id", patch(users_handler::update))
 }

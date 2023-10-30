@@ -2,6 +2,10 @@ POST http://localhost:3000/users/create
 content-type: application/json
 
 {
-    "id":"2353",
-    "username": "sample_name"
+    "username": "sdeaddwe_name",
+    "email": "sfleryaa@wtest.com",
+    "password": "3456"
 }
+
+###
+GET http://localhost:3000/users/1 HTTP/1.1
