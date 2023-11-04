@@ -1,8 +1,11 @@
-use crate::models::user::{GetUser, UpsertUser};
+use crate::models::user::{GetUser, LoginUser, UpsertUser};
 use crate::{models::user::User, AppState};
+use askama::Template;
+use axum::response::IntoResponse;
 use axum::{
     extract::{Path, State},
     http::StatusCode,
+    response::Html,
     Json,
 };
 use uuid::Uuid;
@@ -18,13 +21,9 @@ pub async fn all(State(state): State<AppState>) -> Json<Vec<GetUser>> {
 }
 
 // #[axum::debug_handler]
-pub async fn create(
-    State(state): State<AppState>,
-    Json(payload): Json<UpsertUser>,
-) -> (StatusCode, Json<GetUser>) {
-    let user = User::create(state.pool, payload).await;
-
-    (StatusCode::CREATED, Json(user))
+pub async fn create(State(state): State<AppState>, Json(payload): Json<UpsertUser>) -> StatusCode {
+    User::create(state.pool, payload).await;
+    StatusCode::CREATED
 }
 
 // #[axum::debug_handler]
@@ -32,8 +31,13 @@ pub async fn update(
     State(state): State<AppState>,
     Path(id): Path<Uuid>,
     Json(payload): Json<UpsertUser>,
-) -> (StatusCode, Json<GetUser>) {
-    let user = User::update(state.pool, payload, id).await;
+) -> StatusCode {
+    User::update(state.pool, payload, id).await;
+    StatusCode::CREATED
+}
 
-    (StatusCode::CREATED, Json(user))
+// #[axum::debug_handler]
+pub async fn login(State(state): State<AppState>, Json(payload): Json<LoginUser>) -> StatusCode {
+    User::login(state.pool, payload).await;
+    StatusCode::OK
 }
