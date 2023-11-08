@@ -9,3 +9,5 @@ import '../css/style.css';
 //     </p>
 //   </div>
 // `;
+
+alert('hello');
