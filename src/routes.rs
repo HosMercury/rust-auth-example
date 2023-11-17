@@ -1,3 +1,4 @@
+use crate::handlers;
 use crate::{handlers::main_handler, AppState};
 use axum::{
     routing::{get, patch, post},
@@ -6,11 +7,7 @@ use axum::{
 use handlers::users_handler;
 use tower_http::services::ServeDir;
 
-use crate::handlers;
-
 pub fn web() -> Router<AppState> {
-    let service = ServeDir::new("public");
-
     Router::new()
         .route("/", get(main_handler::index))
         .route("/users", get(users_handler::all))

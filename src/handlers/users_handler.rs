@@ -1,11 +1,8 @@
 use crate::models::user::{GetUser, LoginUser, UpsertUser};
 use crate::{models::user::User, AppState};
-use askama::Template;
-use axum::response::IntoResponse;
 use axum::{
     extract::{Path, State},
     http::StatusCode,
-    response::Html,
     Json,
 };
 use uuid::Uuid;

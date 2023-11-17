@@ -1,18 +1,20 @@
+const MiniCssExtractPlugin = require('mini-css-extract-plugin');
 const path = require('path');
 
 module.exports = {
-  entry: '/src/assets/js/main.js',
+  entry: './assets/js/main.js',
   output: {
     path: path.resolve(__dirname, 'public'),
-    filename: 'bundle.js',
+    filename: 'script-[chunkhash].js',
+    clean: true,
   },
   module: {
     rules: [
       {
         test: /\.css$/i,
-        use: ['style-loader', 'css-loader'],
+        use: [MiniCssExtractPlugin.loader, 'css-loader'],
       },
     ],
   },
-  mode: 'production',
+  plugins: [new MiniCssExtractPlugin({ filename: 'style-[chunkhash].css' })],
 };

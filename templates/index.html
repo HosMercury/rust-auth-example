@@ -2,21 +2,31 @@
 <html lang="en">
 
 <head>
-  <meta charset="utf-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>{% block title %}
-    {{ title }}{% endblock %}
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="{{ crate::MANIFEST.css_link }}" />
+  <script defer type="module" src="{{ crate::MANIFEST.js_link }}"></script>
+
+  <title>
+    {% block title %}
+    {{ title }}
+    {% endblock %}
   </title>
-  {% block head %}{% endblock %}
+  {% block head %}
+  {% endblock %}
 </head>
 
 <body>
-  <div id="app"></div>
+  {% include "partials/nav.html" %}
+
   <div id="content">
+    <img class="img" width="400" height="400" />
     {% block content %}
     <p>Dashboard</p>
+    <button class="btn btn-info">Primary button</button>
     {% endblock %}
   </div>
-  <script src="bundle.js"></script>
 </body>
+
 </html>
