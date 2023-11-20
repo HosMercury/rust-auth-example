@@ -9,13 +9,16 @@ use axum::{
     Json,
 };
 use uuid::Uuid;
-// #[axum::debug_handler]
+
+#[axum::debug_handler]
 pub async fn get(State(state): State<AppState>, Path(id): Path<Uuid>) -> impl IntoResponse {
     // Json(User::get(state.pool, id).await)
     let user = User::get(state.pool, id).await;
 
+    user.last_login;
+
     #[derive(Template)]
-    #[template(path = "users/user.html")]
+    #[template(path = "users/user.j2")]
     struct Template {
         title: String,
         user: GetUser,
@@ -29,13 +32,13 @@ pub async fn get(State(state): State<AppState>, Path(id): Path<Uuid>) -> impl In
     Html(templ.render().unwrap())
 }
 
-// #[axum::debug_handler]
+#[axum::debug_handler]
 pub async fn all(State(state): State<AppState>) -> impl IntoResponse {
     let users = User::all(state.pool).await;
     // Json(User::all(state.pool).await)
 
     #[derive(Template)]
-    #[template(path = "users/users.html")]
+    #[template(path = "users/users.j2")]
     struct Template<'a> {
         title: &'a str,
         users: Vec<GetUser>,
