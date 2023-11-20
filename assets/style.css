@@ -1,0 +1,16 @@
+@import url('./fonts/font.css');
+
+.img {
+  background-image: url('/assets/img/april.jpg');
+}
+
+body {
+  font-family: 'Changa', sans-serif !important;
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+footer {
+  margin-top: auto;
+}

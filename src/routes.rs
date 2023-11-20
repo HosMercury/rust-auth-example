@@ -14,6 +14,6 @@ pub fn web() -> Router<AppState> {
         .route("/users/:id", get(users_handler::get))
         .route("/users/:id", patch(users_handler::update))
         .route("/users/create", post(users_handler::create))
-        .route("/users/login", post(users_handler::login))
+        .route("/login", post(users_handler::login))
         .nest_service("/public", ServeDir::new("public"))
 }

@@ -1,9 +1,10 @@
+mod filters;
 mod handlers;
 mod models;
 mod routes;
 
 use std::net::SocketAddr;
-use std::{env, fmt, fs, io};
+use std::{env, fs, io};
 
 use once_cell::sync::Lazy;
 use sqlx::postgres::PgPoolOptions;
@@ -27,8 +28,6 @@ static MANIFEST: Lazy<Manifest> = Lazy::new(|| {
     for file in files.into_iter() {
         let extension = file.as_path().extension().and_then(|ext| ext.to_str());
         let f = file.as_path().display().to_string();
-
-        println!("{}", extension.unwrap());
 
         match extension {
             Some("js") => js_link = f,
@@ -74,7 +73,7 @@ pub async fn run() {
 
     let app = routes::web().with_state(state);
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 3000));
+    let addr = SocketAddr::from(([127, 0, 0, 1], 4000));
 
     tracing::debug!("listening on {}", addr);
 
