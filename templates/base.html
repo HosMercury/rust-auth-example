@@ -1,0 +1,38 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+
+  <link rel="stylesheet" href="/{{ crate::MANIFEST.css_link }}" />
+  <script defer type="module" src="/{{ crate::MANIFEST.js_link }}"></script>
+
+  <title> Rustpress |
+    {% block title %}
+    {{ title }}
+    {% endblock %}
+  </title>
+  <main class="px-2">
+    {% block head %}
+    {% endblock %}</main>
+</head>
+
+<body>
+  {% include "partials/nav.html" %}
+  <main class="p-2">
+    <h1>Dashboard</h1>
+    {% block content %}
+    {% endblock %}
+  </main>
+
+  <footer class="container-fluid bg-dark text-white">
+    <div class="row p-1">
+      <div class="col-12 text-center">
+        <p>Copyright 2023 Hos.Corp</p>
+      </div>
+    </div>
+  </footer>
+</body>
+
+</html>

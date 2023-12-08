@@ -1,0 +1,72 @@
+{% extends "../base.html" %}
+
+{% block content %}
+<h1>
+  {{ user.username }}
+</h1>
+<table class="table table-striped table-bordered ">
+  <tbody>
+    <tr>
+      <td scope="row">
+        Id
+      </td>
+      <td>
+        {{ user.id }}
+      </td>
+    </tr>
+
+    <tr>
+      <td scope="row">
+        Username
+      </td>
+      <td>
+        {{ user.username }}
+      </td>
+    </tr>
+    <tr>
+      <td scope="row">
+        Email
+      </td>
+      <td>
+        {{ user.email }}
+      </td>
+    </tr>
+
+    <tr>
+      <td scope="row">
+        Created At
+      </td>
+      <td>
+        {{ user.created_at|time }}
+      </td>
+    </tr>
+
+    <tr>
+      <td scope="row">
+        Last Login
+      </td>
+      <td>
+        {% if user.last_login.is_some() -%}
+        {{ user.last_login.as_ref().unwrap()|time }}
+        {%- else -%}
+        -
+        {%- endif %}
+      </td>
+    </tr>
+
+    <tr>
+      <td scope="row">
+        Last Update
+      </td>
+      <td>
+        {% if user.updated_at.is_some() -%}
+        {{ user.updated_at.as_ref().unwrap()|time }}
+        {%- else -%}
+        -
+        {%- endif %}
+      </td>
+    </tr>
+
+  </tbody>
+</table>
+{% endblock %}

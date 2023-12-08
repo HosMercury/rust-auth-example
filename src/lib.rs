@@ -1,14 +1,19 @@
 mod filters;
 mod handlers;
+mod helpers;
 mod models;
 mod routes;
+mod validation;
 
-use std::net::SocketAddr;
-use std::{env, fs, io};
-
+use axum::{error_handling::HandleErrorLayer, extract::FromRef, http::StatusCode, BoxError};
+use axum_flash::Key;
 use once_cell::sync::Lazy;
-use sqlx::postgres::PgPoolOptions;
-use sqlx::{Pool, Postgres};
+use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
+use std::{env, fmt, fs, io, path::Display};
+use time::Duration;
+use tower::ServiceBuilder;
+use tower_sessions::{fred::prelude::*, Expiry, RedisStore, SessionManagerLayer};
+use tracing::Level;
 
 struct Manifest {
     css_link: String,
@@ -22,8 +27,8 @@ static MANIFEST: Lazy<Manifest> = Lazy::new(|| {
         .collect::<Result<Vec<_>, io::Error>>()
         .unwrap();
 
-    let mut css_link: String = "nothing".to_string();
-    let mut js_link: String = "nothing".to_string();
+    let mut css_link: String = "".to_string();
+    let mut js_link: String = "".to_string();
 
     for file in files.into_iter() {
         let extension = file.as_path().extension().and_then(|ext| ext.to_str());
@@ -48,16 +53,22 @@ static MANIFEST: Lazy<Manifest> = Lazy::new(|| {
 pub struct AppState {
     pub app_name: String,
     pub pool: Pool<Postgres>,
+    pub flash_config: axum_flash::Config,
+}
+
+impl FromRef<AppState> for axum_flash::Config {
+    fn from_ref(state: &AppState) -> axum_flash::Config {
+        state.flash_config.clone()
+    }
 }
 
 #[tokio::main]
-pub async fn run() {
-    Lazy::force(&MANIFEST);
-
-    tracing_subscriber::fmt::init();
+pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
+    // Lazy::force(&MANIFEST);
+    // tracing_subscriber::fmt::init();
 
     dotenvy::dotenv().expect("error loading .env");
-    let db_url: String = env::var("DATABASE_URL").unwrap();
+    let db_url: String = env::var("DATABASE_URL")?;
 
     let pool = PgPoolOptions::new()
         .max_connections(5)
@@ -65,20 +76,36 @@ pub async fn run() {
         .await
         .expect("error connection to db");
 
+    ////////////////// SESSION //////////////////////////////
+    let client = RedisClient::default();
+    let redis_conn = client.connect();
+    client.wait_for_connect().await?;
+
+    let session_store = RedisStore::new(client);
+    let session_service = ServiceBuilder::new()
+        .layer(HandleErrorLayer::new(|_: BoxError| async {
+            StatusCode::BAD_REQUEST
+        }))
+        .layer(
+            SessionManagerLayer::new(session_store)
+                .with_secure(false)
+                .with_expiry(Expiry::OnInactivity(Duration::seconds(10))),
+        );
+
     // state
     let state = AppState {
         app_name: "Rust-Press".to_string(),
         pool,
+        flash_config: axum_flash::Config::new(Key::generate()),
     };
 
-    let app = routes::web().with_state(state);
+    let app = routes::web().with_state(state).layer(session_service);
+    let listener = tokio::net::TcpListener::bind("0.0.0.0:8899").await?;
+    // tracing::debug!("listening on {:?}", listener);
+    // println!("listening on {}", listener.local_addr()?);
 
-    let addr = SocketAddr::from(([127, 0, 0, 1], 4000));
+    axum::serve(listener, app).await?;
 
-    tracing::debug!("listening on {}", addr);
-
-    axum::Server::bind(&addr)
-        .serve(app.into_make_service())
-        .await
-        .unwrap();
+    redis_conn.await??;
+    Ok(())
 }

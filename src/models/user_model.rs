@@ -128,7 +128,7 @@ impl User {
         .expect("Failed to execute query");
     }
 
-    pub async fn login(pool: Pool<Postgres>, payload: LoginUser) {
+    pub async fn signin(pool: Pool<Postgres>, payload: LoginUser) {
         let result = sqlx::query_as!(
             LoginUser,
             "SELECT username, password FROM users WHERE username = $1",
@@ -154,4 +154,8 @@ impl User {
             println!("failed");
         }
     }
+
+    // pub fn signup(pool: Pool<Postgres>, payload: LoginUser) {
+    //     //
+    // }
 }
