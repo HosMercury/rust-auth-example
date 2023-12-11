@@ -94,7 +94,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     // state
     let state = AppState {
-        app_name: "Rust-Press".to_string(),
+        app_name: "Rust Auth".to_string(),
         pool,
         flash_config: axum_flash::Config::new(Key::generate()),
     };
