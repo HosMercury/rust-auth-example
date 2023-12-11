@@ -1,0 +1,28 @@
+{% extends "../guest.html" %}
+
+{% block content %}
+
+<div class="container">
+  <h1>
+    Sign In
+  </h1>
+
+  <form method="post" action="/signin" class="bg-light p-4">
+    <div class="mb-3">
+      <label for="username" class="form-label">Username</label>
+      <input type="text" value="usr" name="username" class="form-control" id="username" rows="3"></input>
+    </div>
+
+    <div class="mb-3">
+      <label for="password" class="form-label">Password</label>
+      <input type="password" name="password" value="iou" id="password" class="form-control" aria-describedby="passwordHelpBlock">
+    </div>
+
+    <div class="container d-flex align-items-center justify-content-center">
+      <div class="mx-auto">
+        <button type="submit" class="px-4 btn btn-dark mb-3 m-2">Sign in</button>
+      </div>
+    </div>
+  </form>
+</div>
+{% endblock %}

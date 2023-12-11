@@ -1,5 +1,5 @@
 use rustpress;
 
 pub fn main() {
-    rustpress::run();
+    let _ = rustpress::run();
 }

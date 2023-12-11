@@ -15,14 +15,18 @@
   </title>
   <main class="px-2">
     {% block head %}
-    {% endblock %}</main>
+    {% endblock %}
+  </main>
 </head>
 
 <body>
-  {% include "partials/guest-nav.html" %}
+  {% include "./partials/guest-nav.html" %}
   <main class="p-2">
+    <div class="m-6 p-2 px-4">
+      {% include "./partials/flash.html" %}
+    </div>
+
     {% block content %}
-    <h1>Dashboard</h1>
     {% endblock %}
   </main>
 

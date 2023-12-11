@@ -1,6 +1,7 @@
 mod filters;
 mod handlers;
 mod helpers;
+mod middlewares;
 mod models;
 mod routes;
 mod validation;
@@ -9,11 +10,10 @@ use axum::{error_handling::HandleErrorLayer, extract::FromRef, http::StatusCode,
 use axum_flash::Key;
 use once_cell::sync::Lazy;
 use sqlx::{postgres::PgPoolOptions, Pool, Postgres};
-use std::{env, fmt, fs, io, path::Display};
+use std::{env, fs, io};
 use time::Duration;
 use tower::ServiceBuilder;
 use tower_sessions::{fred::prelude::*, Expiry, RedisStore, SessionManagerLayer};
-use tracing::Level;
 
 struct Manifest {
     css_link: String,
@@ -89,7 +89,7 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
         .layer(
             SessionManagerLayer::new(session_store)
                 .with_secure(false)
-                .with_expiry(Expiry::OnInactivity(Duration::seconds(10))),
+                .with_expiry(Expiry::OnInactivity(Duration::seconds(60 * 60 * 24 * 30))),
         );
 
     // state

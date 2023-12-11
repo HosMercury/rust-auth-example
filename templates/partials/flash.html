@@ -1,23 +1,17 @@
-{% match flash %}
-{% when Some with (flashes) %}
-{% for (l,m) in flashes.iter() %}
-{% if l == axum_flash::Level::Error %}
-<div class="bg-danger text-white border border-danger-subtle p-1 px-2 container">
-  {{ m }} <br />
-</div>
-{% endif %}
-{% endfor %}
-{% when None %}
-{% endmatch %}
+<section>
+  {% for (l,m) in flash.iter() %}
+  {% if l == axum_flash::Level::Error %}
+  <div class="bg-danger text-white p-1 px-2 text-center">
+    {{ m }} <br />
+  </div>
+  {% endif %}
+  {% endfor %}
 
-{% match flash %}
-{% when Some with (flashes) %}
-{% for (l,m) in flashes.iter() %}
-{% if l == axum_flash::Level::Success %}
-<div class="bg-success text-white border border-danger-subtle p-1 px-2 container">
-  {{ m }} <br />
-</div>
-{% endif %}
-{% endfor %}
-{% when None %}
-{% endmatch %}
+  {% for (l,m) in flash.iter() %}
+  {% if l == axum_flash::Level::Success %}
+  <div class="bg-success text-white p-1 px-2 text-center">
+    {{ m }} <br />
+  </div>
+  {% endif %}
+  {% endfor %}
+</section>

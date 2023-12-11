@@ -4,7 +4,6 @@
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-
   <link rel="stylesheet" href="/{{ crate::MANIFEST.css_link }}" />
   <script defer type="module" src="/{{ crate::MANIFEST.js_link }}"></script>
 
@@ -19,9 +18,10 @@
 </head>
 
 <body>
-  {% include "partials/nav.html" %}
+  {% include "./partials/nav.html" %}
   <main class="p-2">
-    <h1>Dashboard</h1>
+    {% include "./partials/flash.html" %}
+
     {% block content %}
     {% endblock %}
   </main>

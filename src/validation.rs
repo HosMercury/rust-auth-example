@@ -1,7 +1,7 @@
-use std::collections::HashMap;
-
 use lazy_static::lazy_static;
 use regex::Regex;
+use sqlx::{Pool, Postgres};
+use std::collections::HashMap;
 use validator::{ValidationError, ValidationErrorsKind};
 
 lazy_static! {
@@ -20,10 +20,33 @@ pub fn validate_password(password: &str) -> Result<(), ValidationError> {
         has_upper |= c.is_uppercase();
         has_digit |= c.is_digit(10);
     }
+
     if !has_whitespace && has_upper && has_lower && has_digit && password.len() >= 8 {
         Ok(())
     } else {
         return Err(ValidationError::new("Password Validation Failed"));
+    }
+}
+
+pub async fn username_exists(username: &str, pool: &Pool<Postgres>) -> bool {
+    let res = sqlx::query!("SELECT username FROM users WHERE username = $1", username)
+        .fetch_one(pool)
+        .await;
+
+    match res {
+        Ok(_) => true,
+        Err(_) => false,
+    }
+}
+
+pub async fn email_exists(email: &str, pool: &Pool<Postgres>) -> bool {
+    let res = sqlx::query!("SELECT email FROM users WHERE email = $1", email)
+        .fetch_one(pool)
+        .await;
+
+    match res {
+        Ok(_) => true,
+        Err(_) => false,
     }
 }
 

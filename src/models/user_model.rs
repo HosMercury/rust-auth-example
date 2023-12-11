@@ -1,18 +1,14 @@
+use anyhow::{bail, Result};
 use argon2::{
     password_hash::{rand_core::OsRng, SaltString},
     Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
 };
-use secrecy::{ExposeSecret, Secret};
 use serde::{Deserialize, Serialize};
 use sqlx::{Pool, Postgres};
 use time::OffsetDateTime;
 use uuid::Uuid;
 
-#[derive(Debug, Deserialize)]
-pub struct LoginUser {
-    pub username: String,
-    pub password: Secret<String>,
-}
+use crate::handlers::user_handler::SignInData;
 
 #[derive(Debug, Deserialize)]
 pub struct UpsertUser {
@@ -40,7 +36,7 @@ pub struct User {
     pub username: String,
     pub email: String,
     #[serde(skip_serializing)]
-    pub password: Secret<String>,
+    pub password: String,
     #[serde(with = "time::serde::iso8601")]
     pub created_at: OffsetDateTime,
     #[serde(with = "time::serde::iso8601::option")]
@@ -128,34 +124,31 @@ impl User {
         .expect("Failed to execute query");
     }
 
-    pub async fn signin(pool: Pool<Postgres>, payload: LoginUser) {
+    pub async fn signin(pool: Pool<Postgres>, payload: SignInData) -> Result<SignInData> {
+        let err_msg = "Invalid Credentials";
+
         let result = sqlx::query_as!(
-            LoginUser,
+            SignInData,
             "SELECT username, password FROM users WHERE username = $1",
             payload.username
         )
-        .fetch_optional(&pool)
-        .await
-        .map_err(|e| {
-            tracing::error!("Failed to execute query: {:?}", e);
-        })
-        .expect("Failed to execute query")
-        .unwrap();
+        .fetch_one(&pool)
+        .await;
 
-        let parsed_hash: PasswordHash<'_> =
-            PasswordHash::new(&result.password.expose_secret()).unwrap();
+        match result {
+            Ok(user) => {
+                let hash = PasswordHash::new(&user.password).unwrap();
 
-        if Argon2::default()
-            .verify_password(payload.password.expose_secret().as_bytes(), &parsed_hash)
-            .is_ok()
-        {
-            println!("sucessss");
-        } else {
-            println!("failed");
+                if Argon2::default()
+                    .verify_password(payload.password.as_bytes(), &hash)
+                    .is_ok()
+                {
+                    return Ok(user);
+                }
+
+                bail!(err_msg)
+            }
+            Err(_) => bail!(err_msg),
         }
     }
-
-    // pub fn signup(pool: Pool<Postgres>, payload: LoginUser) {
-    //     //
-    // }
 }
