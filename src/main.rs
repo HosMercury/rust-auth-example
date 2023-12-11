@@ -1,5 +1,5 @@
-use rustpress;
+use rust_auth_example;
 
 pub fn main() {
-    let _ = rustpress::run();
+    let _ = rust_auth_example::run();
 }

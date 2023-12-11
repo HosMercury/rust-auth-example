@@ -4,12 +4,12 @@ services:
     image: postgres:14.1-alpine
     restart: always
     environment:
-      - POSTGRES_USER=rustpress  
-      - POSTGRES_PASSWORD=rustpress
-      - POSTGRES_DATABASE=rustpress
+      - POSTGRES_USER=rust_auth_example
+      - POSTGRES_PASSWORD=rust_auth_example
+      - POSTGRES_DATABASE=rust_auth_example
     ports:
       - '5432:5432'
-    volumes: 
+    volumes:
       - db:/var/lib/postgresql/data
 
   redis:
@@ -18,7 +18,7 @@ services:
     ports:
       - '6379:6379'
     command: redis-server --save 20 1 --loglevel warning
-    
+
 volumes:
   db:
     driver: local
