@@ -13,3 +13,5 @@ It is just as a basic tutorial and not a full auth , use in your responsibility.
 ![Sign in page](https://raw.githubusercontent.com/HosMercury/rust-auth-example/main/screenshots/signin.png)
 
 ![Sign up page](https://raw.githubusercontent.com/HosMercury/rust-auth-example/main/screenshots/signup.png)
+
+![Users page](https://raw.githubusercontent.com/HosMercury/rust-auth-example/main/screenshots/users.png)
