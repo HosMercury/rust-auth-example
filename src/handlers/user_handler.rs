@@ -220,11 +220,11 @@ pub async fn signin(
                 Ok(user) => {
                     session.insert("user", user).unwrap();
                     let flash = flash.success("Welcome to our website");
-                    return (flash, Redirect::to("/"));
+                    (flash, Redirect::to("/"))
                 }
                 Err(_) => {
                     let flash = flash.error("invalid credentials");
-                    return (flash, Redirect::to("/signin"));
+                    (flash, Redirect::to("/signin"))
                 }
             }
         }

@@ -18,13 +18,13 @@ pub fn validate_password(password: &str) -> Result<(), ValidationError> {
         has_whitespace |= c.is_whitespace();
         has_lower |= c.is_lowercase();
         has_upper |= c.is_uppercase();
-        has_digit |= c.is_digit(10);
+        has_digit |= c.is_ascii_digit();
     }
 
     if !has_whitespace && has_upper && has_lower && has_digit && password.len() >= 8 {
         Ok(())
     } else {
-        return Err(ValidationError::new("Password Validation Failed"));
+        Err(ValidationError::new("Password Validation Failed"))
     }
 }
 
@@ -33,10 +33,7 @@ pub async fn username_exists(username: &str, pool: &Pool<Postgres>) -> bool {
         .fetch_one(pool)
         .await;
 
-    match res {
-        Ok(_) => true,
-        Err(_) => false,
-    }
+    res.is_ok()
 }
 
 pub async fn email_exists(email: &str, pool: &Pool<Postgres>) -> bool {
@@ -44,10 +41,7 @@ pub async fn email_exists(email: &str, pool: &Pool<Postgres>) -> bool {
         .fetch_one(pool)
         .await;
 
-    match res {
-        Ok(_) => true,
-        Err(_) => false,
-    }
+    res.is_ok()
 }
 
 pub fn extract_errors(

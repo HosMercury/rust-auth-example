@@ -4,7 +4,7 @@ use argon2::{
     Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
 };
 use serde::{Deserialize, Serialize};
-use sqlx::{Pool, Postgres};
+use sqlx::{Pool, Postgres, query_as, query};
 use time::OffsetDateTime;
 use uuid::Uuid;
 
@@ -47,7 +47,7 @@ pub struct User {
 
 impl User {
     pub async fn get(pool: Pool<Postgres>, id: Uuid) -> GetUser {
-        sqlx::query_as!(
+        query_as!(
             GetUser,
             "SELECT id, username, email, created_at, updated_at, last_login FROM users WHERE id = $1",
             id
@@ -61,7 +61,7 @@ impl User {
     }
 
     pub async fn all(pool: Pool<Postgres>) -> Vec<GetUser> {
-        sqlx::query_as!(
+        query_as!(
             GetUser,
             "SELECT id, username, email, created_at, updated_at, last_login FROM users"
         )
@@ -88,7 +88,7 @@ impl User {
             .expect("salting error")
             .to_string();
 
-        sqlx::query!(
+        query!(
             "INSERT INTO users (id, email, username, password) VALUES ( $1, $2, $3 , $4) returning id",
             Uuid::new_v4(),
             email,
@@ -109,7 +109,7 @@ impl User {
             password,
         } = payload;
 
-        sqlx::query!(
+        query!(
             "UPDATE users SET email = $1, username = $2, password = $3 WHERE id = $4 RETURNING id",
             email,
             username,
@@ -127,7 +127,7 @@ impl User {
     pub async fn signin(pool: Pool<Postgres>, payload: SignInData) -> Result<SignInData> {
         let err_msg = "Invalid Credentials";
 
-        let result = sqlx::query_as!(
+        let result = query_as!(
             SignInData,
             "SELECT username, password FROM users WHERE username = $1",
             payload.username
