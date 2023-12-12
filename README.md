@@ -4,5 +4,6 @@ A basic but solid example of signin/signup methods in Rust with validation, flas
 
 and template engine ( askama ) .
 
+![Sign in page](https://raw.githubusercontent.com/HosMercury/rust-auth-example/main/screenshots/signin.png)
 
-![Page](https://github.com/[username]/[reponame]/blob/[branch]/image.jpg?raw=true)
+![Sign up page](https://raw.githubusercontent.com/HosMercury/rust-auth-example/main/screenshots/signup.png)
