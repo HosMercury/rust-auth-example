@@ -3,12 +3,11 @@ use crate::validation::extract_errors;
 use crate::{filters, validation};
 use crate::{models::user_model::User, AppState};
 use askama::Template;
-use axum::response::{Html, IntoResponse, Redirect};
-use axum::Form;
 use axum::{
     extract::{Path, State},
     http::StatusCode,
-    Json,
+    response::{Html, IntoResponse, Redirect},
+    Form, Json,
 };
 use axum_flash::{Flash, IncomingFlashes};
 use serde::{Deserialize, Serialize};
@@ -94,6 +93,10 @@ pub async fn signup_form(flash: Flash, flashes: IncomingFlashes) -> (Flash, impl
 
     (flash, Html(templ.render().unwrap()))
 }
+
+////////////////////////////////////////////////////////////////////////
+////////////////////////////// AUTH ////////////////////////////////////
+/// ////////////////////////////////////////////////////////////////////
 
 // post sign-up
 #[derive(Deserialize, Validate, Debug)]
@@ -240,6 +243,6 @@ pub async fn signin(
 
 #[axum::debug_handler]
 pub async fn signout(session: Session) -> impl IntoResponse {
-    let _: Option<SignInData> = session.remove("user").unwrap();
+    session.remove::<SignInData>("user").unwrap();
     Redirect::to("/signin")
 }

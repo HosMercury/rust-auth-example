@@ -1,6 +1,6 @@
 use lazy_static::lazy_static;
 use regex::Regex;
-use sqlx::{Pool, Postgres};
+use sqlx::{query, Pool, Postgres};
 use std::collections::HashMap;
 use validator::{ValidationError, ValidationErrorsKind};
 
@@ -29,19 +29,17 @@ pub fn validate_password(password: &str) -> Result<(), ValidationError> {
 }
 
 pub async fn username_exists(username: &str, pool: &Pool<Postgres>) -> bool {
-    let res = sqlx::query!("SELECT username FROM users WHERE username = $1", username)
+    query!("SELECT username FROM users WHERE username = $1", username)
         .fetch_one(pool)
-        .await;
-
-    res.is_ok()
+        .await
+        .is_ok()
 }
 
 pub async fn email_exists(email: &str, pool: &Pool<Postgres>) -> bool {
-    let res = sqlx::query!("SELECT email FROM users WHERE email = $1", email)
+    query!("SELECT email FROM users WHERE email = $1", email)
         .fetch_one(pool)
-        .await;
-
-    res.is_ok()
+        .await
+        .is_ok()
 }
 
 pub fn extract_errors(

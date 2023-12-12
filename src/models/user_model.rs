@@ -1,14 +1,13 @@
+use crate::handlers::user_handler::SignInData;
 use anyhow::{bail, Result};
 use argon2::{
     password_hash::{rand_core::OsRng, SaltString},
     Argon2, PasswordHash, PasswordHasher, PasswordVerifier,
 };
 use serde::{Deserialize, Serialize};
-use sqlx::{Pool, Postgres, query_as, query};
+use sqlx::{query, query_as, Pool, Postgres};
 use time::OffsetDateTime;
 use uuid::Uuid;
-
-use crate::handlers::user_handler::SignInData;
 
 #[derive(Debug, Deserialize)]
 pub struct UpsertUser {
@@ -93,8 +92,8 @@ impl User {
             Uuid::new_v4(),
             email,
             username,
-            password_hash        )
-        .fetch_one(&pool)
+            password_hash
+        ).fetch_one(&pool)
         .await
         .map_err(|e| {
             tracing::error!("Failed to execute query: {:?}", e);
