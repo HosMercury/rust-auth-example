@@ -1,4 +1,4 @@
-# Example of Auth vare auth with axum
+# Example of Auth auth with axum - validation - pages
 
 A basic but solid example of signin/signup methods in Rust with validation, flash messages
 
