@@ -101,8 +101,8 @@ pub async fn run() -> Result<(), Box<dyn std::error::Error>> {
 
     let app = routes::web().with_state(state).layer(session_service);
     let listener = tokio::net::TcpListener::bind("0.0.0.0:8899").await?;
+
     // tracing::debug!("listening on {:?}", listener);
-    // println!("listening on {}", listener.local_addr()?);
 
     axum::serve(listener, app).await?;
 
