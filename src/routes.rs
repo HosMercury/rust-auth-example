@@ -21,6 +21,7 @@ pub fn web() -> Router<AppState> {
             get(user_handler::signin_form).post(user_handler::signin),
         )
         .route("/signout", post(user_handler::signout))
+        .route("/g/callback", get(user_handler::google_oauth_callback))
         .route("/users", get(user_handler::all))
         .route(
             "/users/:id",

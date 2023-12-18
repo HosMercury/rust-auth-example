@@ -1,15 +1,27 @@
+use std::collections::HashMap;
+use std::env;
+
 use crate::models::user_model::{GetUser, UpsertUser};
 use crate::validation::extract_errors;
 use crate::{filters, validation};
 use crate::{models::user_model::User, AppState};
 use askama::Template;
 use axum::{
-    extract::{Path, State},
+    extract::{Path, Query, State},
     http::StatusCode,
     response::{Html, IntoResponse, Redirect},
     Form, Json,
 };
 use axum_flash::{Flash, IncomingFlashes};
+use oauth2::{
+    basic::BasicClient,
+    basic::{BasicErrorResponseType, BasicTokenType},
+    reqwest::async_http_client,
+    url::Url,
+    AuthUrl, AuthorizationCode, Client, ClientId, ClientSecret, CsrfToken, EmptyExtraTokenFields,
+    RedirectUrl, RevocationErrorResponseType, Scope, StandardErrorResponse, StandardRevocableToken,
+    StandardTokenIntrospectionResponse, StandardTokenResponse, TokenResponse, TokenUrl,
+};
 use serde::{Deserialize, Serialize};
 use tower_sessions::Session;
 use uuid::Uuid;
@@ -78,17 +90,29 @@ pub async fn update(
 }
 
 // #[axum::debug_handler]
-pub async fn signup_form(flash: Flash, flashes: IncomingFlashes) -> (Flash, impl IntoResponse) {
+pub async fn signup_form(
+    session: Session,
+    flash: Flash,
+    flashes: IncomingFlashes,
+) -> (Flash, impl IntoResponse) {
+    let authorize_url = oauth_url();
+
+    session
+        .insert("authorize_url", authorize_url.clone())
+        .unwrap();
+
     #[derive(Template)]
     #[template(path = "users/signup.html")]
     struct Template<'a> {
         title: &'a str,
         flash: IncomingFlashes,
+        authorize_url: Url,
     }
 
     let templ = Template {
         title: "Sign Up",
         flash: flashes,
+        authorize_url,
     };
 
     (flash, Html(templ.render().unwrap()))
@@ -166,17 +190,27 @@ pub async fn signup(
 
 //sign-in user
 // #[axum::debug_handler]
-pub async fn signin_form(flash: Flash, flashes: IncomingFlashes) -> (Flash, impl IntoResponse) {
+pub async fn signin_form(
+    session: Session,
+    flash: Flash,
+    flashes: IncomingFlashes,
+) -> (Flash, impl IntoResponse) {
+    let authorize_url = oauth_url();
+
+    session.insert("authorize_url", &authorize_url).unwrap();
+
     #[derive(Template)]
     #[template(path = "users/signin.html")]
     struct Template<'a> {
         title: &'a str,
         flash: IncomingFlashes,
+        authorize_url: Url,
     }
 
     let templ = Template {
         title: "Sign In",
         flash: flashes,
+        authorize_url,
     };
 
     (flash, Html(templ.render().unwrap()))
@@ -245,4 +279,113 @@ pub async fn signin(
 pub async fn signout(session: Session) -> impl IntoResponse {
     session.remove::<SignInData>("user").unwrap();
     Redirect::to("/signin")
+}
+
+///////////////////////////////////////////////////////////////////////////////
+/////////////////////////// Oauth /////////////////////////////////////////////
+///////////////////////////////////////////////////////////////////////////////
+
+fn oauth_client() -> Client<
+    StandardErrorResponse<BasicErrorResponseType>,
+    StandardTokenResponse<EmptyExtraTokenFields, BasicTokenType>,
+    BasicTokenType,
+    StandardTokenIntrospectionResponse<EmptyExtraTokenFields, BasicTokenType>,
+    StandardRevocableToken,
+    StandardErrorResponse<RevocationErrorResponseType>,
+> {
+    let google_client_id = ClientId::new(
+        env::var("GOOGLE_CLIENT").expect("Missing the GOOGLE_CLIENT_ID environment variable."),
+    );
+    let google_client_secret = ClientSecret::new(
+        env::var("GOOGLE_SECRET").expect("Missing the GOOGLE_CLIENT_SECRET environment variable."),
+    );
+    let auth_url = AuthUrl::new("https://accounts.google.com/o/oauth2/v2/auth".to_string())
+        .expect("Invalid authorization endpoint URL");
+    let token_url = TokenUrl::new("https://www.googleapis.com/oauth2/v3/token".to_string())
+        .expect("Invalid token endpoint URL");
+
+    let client = BasicClient::new(
+        google_client_id,
+        Some(google_client_secret),
+        auth_url,
+        Some(token_url),
+    )
+    .set_redirect_uri(
+        RedirectUrl::new("http://localhost:8899/g/callback".to_string())
+            .expect("Invalid redirect URL"),
+    );
+
+    client
+}
+
+fn oauth_url() -> Url {
+    let client = oauth_client();
+    let scope_profile: &str = "https://www.googleapis.com/auth/userinfo.profile";
+    let scope_email: &str = "https://www.googleapis.com/auth/userinfo.email";
+
+    let (authorize_url, _) = client
+        .authorize_url(CsrfToken::new_random)
+        .add_scope(Scope::new(scope_profile.to_string()))
+        .add_scope(Scope::new(scope_email.to_string()))
+        .url();
+
+    authorize_url
+}
+
+#[derive(Deserialize)]
+pub struct RedirectQuery {
+    pub code: String,
+}
+
+pub async fn google_oauth_callback(Query(q): Query<RedirectQuery>) {
+    let RedirectQuery { code } = q;
+    let code = AuthorizationCode::new(code);
+
+    let client = oauth_client();
+
+    let token_response = client
+        .exchange_code(code)
+        .request_async(async_http_client)
+        .await
+        .unwrap();
+
+    println!(
+        "Google returned the following token:\n{:?}\n",
+        token_response.access_token().secret()
+    );
+
+    // link to get user data
+    // https://www.googleapis.com/oauth2/v3/userinfo
+
+    let user_info_url = "https://www.googleapis.com/oauth2/v3/userinfo";
+    let token = token_response.access_token().secret();
+    let client = reqwest::Client::new();
+
+    let request = client
+        .get(user_info_url)
+        .header("Authorization", format!("Bearer {}", token));
+
+    let response = request.send().await.unwrap();
+
+    #[derive(Debug, Serialize, Deserialize)]
+    struct ResponseData {
+        sub: u64,
+        name: String,
+        picture: Option<String>,
+        email: String,
+    }
+
+    // println!("resp json {}", response.text().await.unwrap());
+
+    // if the request was successful (status code 2xx)
+    if response.status().is_success() {
+        let response_data: ResponseData = response.json().await.unwrap();
+        println!("Response: {:#?}", response_data);
+    } else {
+        println!(
+            "Error: {} - {}",
+            response.status(),
+            response.text().await.unwrap()
+        );
+    }
 }

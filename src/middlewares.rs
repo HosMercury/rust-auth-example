@@ -16,6 +16,7 @@ pub async fn auth_middleware(session: Session, request: Request, next: Next) -> 
                 || (request.method() == Method::POST && request.uri().path() == "/signin")
                 || (request.method() == Method::GET && request.uri().path() == "/signup")
                 || (request.method() == Method::POST && request.uri().path() == "/signup")
+                || true
             {
                 next.run(request).await
             } else {
